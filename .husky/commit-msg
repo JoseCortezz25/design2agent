@@ -1,0 +1,16 @@
+pnpm exec commitlint --edit $1
+
+COMMIT_MSG=$(cat "$1")
+PATTERN="^([A-Z]+-[0-9]+ )?(feat|fix|chore|docs|style|refactor|test|perf)(\(.+?\))?: .{1,}$"
+
+if ! echo "$COMMIT_MSG" | grep -Eq "$PATTERN"; then
+  echo "❌ Commit message no cumple el formato requerido."
+  echo "   Formato: [TICKET-123 ]tipo(scope)?: descripción"
+  echo "   Tipos válidos: feat, fix, chore, docs, style, refactor, test, perf"
+  exit 1
+fi
+
+if [ ${#COMMIT_MSG} -gt 88 ]; then
+  echo "❌ El mensaje supera los 88 caracteres (${#COMMIT_MSG})."
+  exit 1
+fi

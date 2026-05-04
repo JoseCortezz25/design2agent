@@ -5,6 +5,9 @@ import prettier from 'eslint-config-prettier';
 import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
+  {
+    ignores: ['dist/**']
+  },
   typescript.configs.recommended,
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],

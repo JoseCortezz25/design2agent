@@ -1,4 +1,10 @@
 import { PLUGIN, UI } from '@common/networkSides';
+import { DESIGN_MD_VERSION } from '@common/design-md/domain.types';
+import { registerExtractCurrentPageHandler } from '@plugin/design-md/extract.handler';
+import {
+  loadDesignMdSettings,
+  saveDesignMdSettings
+} from '@plugin/design-md/settings.service';
 
 export const PLUGIN_CHANNEL = PLUGIN.channelBuilder()
   .emitsTo(UI, message => {
@@ -11,50 +17,116 @@ export const PLUGIN_CHANNEL = PLUGIN.channelBuilder()
   })
   .startListening();
 
-// ---------- Message handlers
+PLUGIN_CHANNEL.registerMessageHandler('loadSettings', async () => {
+  const settings = await loadDesignMdSettings();
 
-PLUGIN_CHANNEL.registerMessageHandler('ping', () => {
-  return 'pong';
+  PLUGIN_CHANNEL.emit(UI, 'settingsLoaded', [
+    {
+      version: DESIGN_MD_VERSION.V1,
+      settings
+    }
+  ]);
+
+  return settings;
 });
 
-PLUGIN_CHANNEL.registerMessageHandler('hello', text => {
-  console.log('UI side said:', text);
+PLUGIN_CHANNEL.registerMessageHandler('saveSettings', async payload => {
+  const settings = await saveDesignMdSettings(payload.settings);
+
+  PLUGIN_CHANNEL.emit(UI, 'settingsSaved', [
+    {
+      version: DESIGN_MD_VERSION.V1,
+      settings
+    }
+  ]);
+
+  return settings;
 });
 
-PLUGIN_CHANNEL.registerMessageHandler('createRect', (width, height) => {
-  if (figma.editorType === 'figma') {
-    const rect = figma.createRectangle();
-    rect.x = 0;
-    rect.y = 0;
-    rect.name = 'Plugin Rectangle # ' + Math.floor(Math.random() * 9999);
-    rect.fills = [
-      {
-        type: 'SOLID',
-        color: {
-          r: Math.random(),
-          g: Math.random(),
-          b: Math.random()
-        }
+registerExtractCurrentPageHandler(PLUGIN_CHANNEL);
+
+PLUGIN_CHANNEL.registerMessageHandler('cancelJob', async payload => {
+  PLUGIN_CHANNEL.emit(UI, 'pipelineWarning', [
+    {
+      version: DESIGN_MD_VERSION.V1,
+      requestId: payload.requestId,
+      issue: {
+        id: 'pipeline/cancelled',
+        severity: 'info',
+        rule: 'cancelled-by-user',
+        path: 'pipeline',
+        message: 'Job cancelled before extraction execution.',
+        hint: null
       }
-    ];
-    rect.resize(width, height);
-    figma.currentPage.appendChild(rect);
-    figma.viewport.scrollAndZoomIntoView([rect]);
-    figma.closePlugin();
+    }
+  ]);
+
+  return {
+    version: DESIGN_MD_VERSION.V1,
+    requestId: payload.requestId,
+    isCancelled: true
+  };
+});
+
+PLUGIN_CHANNEL.subscribe('loadSettings', payload => {
+  if (payload.version !== DESIGN_MD_VERSION.V1) {
+    PLUGIN_CHANNEL.emit(UI, 'pluginError', [
+      {
+        version: DESIGN_MD_VERSION.V1,
+        requestId: null,
+        message: `Unsupported version: ${payload.version}`,
+        recoverable: true
+      }
+    ]);
   }
 });
 
-PLUGIN_CHANNEL.registerMessageHandler('exportSelection', async () => {
-  const selectedNodes = figma.currentPage.selection;
-  if (selectedNodes.length === 0) {
-    throw new Error('No selection is present.');
+PLUGIN_CHANNEL.subscribe('extractCurrentPage', payload => {
+  if (payload.version !== DESIGN_MD_VERSION.V1) {
+    PLUGIN_CHANNEL.emit(UI, 'pluginError', [
+      {
+        version: DESIGN_MD_VERSION.V1,
+        requestId: payload.requestId,
+        message: `Unsupported version: ${payload.version}`,
+        recoverable: true
+      }
+    ]);
+  }
+});
+
+PLUGIN_CHANNEL.subscribe('cancelJob', payload => {
+  if (payload.version !== DESIGN_MD_VERSION.V1) {
+    PLUGIN_CHANNEL.emit(UI, 'pluginError', [
+      {
+        version: DESIGN_MD_VERSION.V1,
+        requestId: payload.requestId,
+        message: `Unsupported version: ${payload.version}`,
+        recoverable: true
+      }
+    ]);
+  }
+});
+
+PLUGIN_CHANNEL.subscribe('saveSettings', payload => {
+  if (payload.version !== DESIGN_MD_VERSION.V1) {
+    PLUGIN_CHANNEL.emit(UI, 'pluginError', [
+      {
+        version: DESIGN_MD_VERSION.V1,
+        requestId: null,
+        message: `Unsupported version: ${payload.version}`,
+        recoverable: true
+      }
+    ]);
   }
 
-  const selection = selectedNodes[0];
-  const bytes = await selection.exportAsync({
-    format: 'PNG',
-    contentsOnly: false
-  });
-
-  return 'data:image/png;base64,' + figma.base64Encode(bytes);
+  if (payload.settings.version !== DESIGN_MD_VERSION.V1) {
+    PLUGIN_CHANNEL.emit(UI, 'pluginError', [
+      {
+        version: DESIGN_MD_VERSION.V1,
+        requestId: null,
+        message: `Unsupported settings version: ${payload.settings.version}`,
+        recoverable: true
+      }
+    ]);
+  }
 });

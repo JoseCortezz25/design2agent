@@ -25,6 +25,9 @@ export const messages = {
       loading: 'Cargando...',
       success: 'Operación exitosa',
       error: 'Ocurrió un error'
+    },
+    designMd: {
+      bootstrapping: 'Inicializando flujo DESIGN.md'
     }
   }
 } as const;

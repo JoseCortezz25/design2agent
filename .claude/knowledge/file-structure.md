@@ -109,6 +109,29 @@ src/
 | Handlers (sandbox) | `*.handler.ts` | `auth.handler.ts`, `export.handler.ts` |
 | Screen messages | `messages.ts` | placed inside each screen folder |
 
+### Screen Decomposition Rule
+
+- Main route screens may live inside a feature folder such as `src/ui/screens/design-md/design-md.screen.tsx`.
+- Feature-local support files like `messages.ts` and `*.util.ts` are allowed inside that feature folder.
+- When a screen grows and must be split, extracted sub-screens MUST be placed as direct children of `src/ui/screens/`.
+- Do NOT use `src/ui/screens/<feature>/pages/` or place extracted sub-screens as nested children of the feature folder.
+- Extracted sub-screens MUST use the `*.screen.tsx` suffix.
+
+Example:
+
+```text
+src/ui/screens/
+├── design-md/
+│   ├── design-md.screen.tsx
+│   ├── design-md-screen.util.ts
+│   └── messages.ts
+├── home.screen.tsx
+├── settings.screen.tsx
+├── generating.screen.tsx
+├── completed.screen.tsx
+└── failed.screen.tsx
+```
+
 ---
 
 ## Variable Naming

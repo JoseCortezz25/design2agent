@@ -1,6 +1,6 @@
 // https://www.figma.com/plugin-docs/manifest/
-export default {
-  name: 'Template Starter Plugin',
+export const figmaManifest = {
+  name: 'design2agent',
   id: '1222852692367737510',
   api: '1.0.0',
   main: 'plugin.js',
@@ -8,4 +8,4 @@ export default {
   capabilities: [],
   enableProposedApi: false,
   editorType: ['figma', 'figjam']
-};
+} as const;

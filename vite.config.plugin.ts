@@ -2,7 +2,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import generateFile from 'vite-plugin-generate-file';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import figmaManifest from './figma.manifest';
+import { figmaManifest } from './figma.manifest';
 
 export default defineConfig(({ mode }) => ({
   plugins: [

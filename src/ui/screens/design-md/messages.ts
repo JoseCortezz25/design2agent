@@ -1,27 +1,31 @@
 export const designMdMessages = {
+  productName: 'design2agent',
   title: 'DESIGN.md',
   chrome: {
-    draft: 'v1 · Compact dark'
+    draft: 'AI context extractor'
   },
   badge: {
-    figmaDetected: 'Figma detected'
+    figmaDetected: 'Figma selection ready'
   },
   metrics: {
     colors: 'Colors',
-    textStyles: 'Text styles',
+    textStyles: 'Typography',
     variables: 'Variables',
     effects: 'Effects'
   },
   idle: {
-    title: 'Generate DESIGN.md',
+    title:
+      'Extract tokens and layout structures directly from your Figma selection.',
+
     description:
-      'Extract from current page and generate deterministic artifacts for documentation and tokens.',
-    generate: 'Generate DESIGN.md',
-    settings: 'Configure options'
+      'Turn your current page into DESIGN.md, tokens, and implementation-ready output with a cleaner, more focused flow.',
+    generate: 'Extract your DESIGN.md',
+    settings: 'Open settings'
   },
   generating: {
     title: 'Generating artifacts',
-    description: 'Pipeline running over current page data.',
+    description:
+      'The extraction pipeline is reading your current selection and preparing output.',
     waiting: 'Waiting plugin response...',
     stepsTitle: 'Pipeline steps',
     steps: {
@@ -42,21 +46,30 @@ export const designMdMessages = {
     },
     downloads: {
       title: 'Downloads',
-      markdown: 'Download DESIGN.md',
-      tokens: 'Download tokens.json',
+      markdown: 'DESIGN.md',
+      tokens: 'tokens.json',
       tailwindV4: 'Download tailwind.theme.css',
       zip: 'Download both (.zip)',
+      zipLabel: 'Both (.zip)',
       zipUnavailable: 'ZIP unavailable in this run',
       blockedByErrors: 'Resolve lint errors to enable downloads.'
     },
     lint: {
+      title: 'Lint Results',
       clean: 'No issues found.',
-      counts: 'Issue summary'
+      counts: 'Issue summary',
+      severity: {
+        error: 'ERROR',
+        warning: 'WARN',
+        info: 'INFO'
+      },
+      total: (count: number) => `${count} tokens total`
     }
   },
   settings: {
-    title: 'Settings',
-    description: 'Source and output configuration persisted in plugin storage.',
+    title: 'Extraction settings',
+    description:
+      'Control the source scope and the generated outputs stored by the plugin.',
     sourceSection: 'Source',
     outputSection: 'Output',
     defaultMode: 'Default mode',
@@ -72,7 +85,8 @@ export const designMdMessages = {
   },
   failed: {
     title: 'Pipeline failed',
-    description: 'The plugin reported an error. Review details and retry.',
+    description:
+      'The plugin reported an error. Review the message and retry the extraction.',
     retry: 'Retry generation'
   }
 } as const;

@@ -34,19 +34,21 @@ No test runner is configured — Storybook is the visual documentation layer.
 
 Enable only what the current task needs:
 
-| Server | Purpose |
-|--------|---------|
-| **figma** | Design inspection, variables, screenshots from Figma |
-| **pencil** | Read/write `.pen` design files |
+| Server     | Purpose                                              |
+| ---------- | ---------------------------------------------------- |
+| **figma**  | Design inspection, variables, screenshots from Figma |
+| **pencil** | Read/write `.pen` design files                       |
 
 ## Documentation Map
 
 Load strategically — don't read everything upfront!
 
 **Always Read First:**
+
 - `.claude/knowledge/critical-constraints.md` — Non-negotiable rules
 
 **Load As Needed (use Grep for sections):**
+
 - `.claude/knowledge/architecture-patterns.md` — Dual-context model, IPC patterns, UX flow
 - `.claude/knowledge/tech-stack.md` — Tech versions, commands, key dependencies
 - `.claude/knowledge/file-structure.md` — Naming conventions, path aliases, directory layout
@@ -63,32 +65,31 @@ Load strategically — don't read everything upfront!
 
 Auto-applied rules (based on file paths) in `.claude/rules/`:
 
-| Rule | Applies to | Description |
-|------|-----------|-------------|
-| `code-quality.md` | `src/**/*.{ts,tsx}` | ESLint conventions, TypeScript strictness, no `any` |
-| `naming-conventions.md` | `src/**/*.{ts,tsx}` | kebab-case files, PascalCase components, file suffixes |
-| `folder-structure.md` | `src/**/*.{ts,tsx}` | plugin/ui/common layer rules, Atomic Design layout |
-| `text-management.md` | `src/**/*.{ts,tsx}` | messages.ts pattern, no hardcoded strings |
-| `styling.md` | `src/**/*.{ts,tsx}` | Tailwind v4 + @apply, mobile-first |
-| `project-characteristics.md` | `src/**/*.{ts,tsx}` | Figma plugin patterns, Zustand, monorepo-networker |
-| `document-component-storybook.md` | `src/**/*.{ts,tsx}` | Storybook story structure |
-| `migration-rules.md` | — | Pre-flight checklist, no barrel files, layer rules |
+| Rule                              | Applies to          | Description                                            |
+| --------------------------------- | ------------------- | ------------------------------------------------------ |
+| `code-quality.md`                 | `src/**/*.{ts,tsx}` | ESLint conventions, TypeScript strictness, no `any`    |
+| `naming-conventions.md`           | `src/**/*.{ts,tsx}` | kebab-case files, PascalCase components, file suffixes |
+| `folder-structure.md`             | `src/**/*.{ts,tsx}` | plugin/ui/common layer rules, Atomic Design layout     |
+| `text-management.md`              | `src/**/*.{ts,tsx}` | messages.ts pattern, no hardcoded strings              |
+| `styling.md`                      | `src/**/*.{ts,tsx}` | Tailwind v4 + @apply, mobile-first                     |
+| `project-characteristics.md`      | `src/**/*.{ts,tsx}` | Figma plugin patterns, Zustand, monorepo-networker     |
+| `document-component-storybook.md` | `src/**/*.{ts,tsx}` | Storybook story structure                              |
 
 ## Available Skills
 
-| Skill | Trigger |
-|-------|---------|
-| `atomic-design` | Building, splitting, or refactoring a component |
-| `commit-conventions` | Making a git commit |
-| `frontend-design` | Creating new UI screens or visual designs |
-| `react-19` | Writing React components (no manual memoization) |
-| `tailwind-4` | Adding or modifying styles |
-| `typescript` | TypeScript type work, interfaces, generics |
-| `zod-4` | Form validation, Zod schemas |
+| Skill                | Trigger                                          |
+| -------------------- | ------------------------------------------------ |
+| `atomic-design`      | Building, splitting, or refactoring a component  |
+| `commit-conventions` | Making a git commit                              |
+| `frontend-design`    | Creating new UI screens or visual designs        |
+| `react-19`           | Writing React components (no manual memoization) |
+| `tailwind-4`         | Adding or modifying styles                       |
+| `typescript`         | TypeScript type work, interfaces, generics       |
+| `zod-4`              | Form validation, Zod schemas                     |
 
 ## Available Commands
 
-| Command | Description |
-|---------|------------|
+| Command          | Description                                            |
+| ---------------- | ------------------------------------------------------ |
 | `/figma-to-code` | Convert Figma designs to code following project styles |
-| `/ui-to-json` | Convert UI to JSON representation |
+| `/ui-to-json`    | Convert UI to JSON representation                      |

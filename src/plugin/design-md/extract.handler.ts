@@ -8,10 +8,12 @@ import {
 import { normalizeDesignSnapshot } from '@common/design-md/normalize';
 import { mapNormalizedToDtcgJson } from '@common/design-md/dtcg.mapper';
 import { generateDesignMd } from '@common/design-md/design-md.generator';
+import { mapSnapshotToSemanticModel } from '@common/design-md/semantic.mapper';
 import { generateTailwindV4ThemeCss } from '@common/design-md/tailwind-v4.generator';
 import { validateNormalizedDesign } from '@common/design-md/design-md.validator';
 import { createCurrentPageSnapshot } from './canvas.snapshot';
 import { loadDesignMdSettings } from './settings.service';
+import { createArtifactZipBase64 } from './artifact-zip.service';
 
 type PluginChannel = ReturnType<
   ReturnType<typeof PLUGIN.channelBuilder>['startListening']
@@ -101,33 +103,44 @@ export function registerExtractCurrentPageHandler(pluginChannel: PluginChannel) 
       ]);
 
       const dtcgJsonContent = mapNormalizedToDtcgJson(normalized);
-      const markdownContent = generateDesignMd(normalized, [...warnings, ...validationIssues]);
+      const semanticModel = mapSnapshotToSemanticModel(snapshot);
+      const markdownContent = generateDesignMd(semanticModel);
       const settings = await loadDesignMdSettings();
       const tailwindV4CssContent = settings.includeTailwindV4
         ? generateTailwindV4ThemeCss(normalized)
         : null;
+      const markdownArtifact = {
+        fileName: 'DESIGN.md',
+        mimeType: 'text/markdown',
+        content: markdownContent
+      };
+      const dtcgJsonArtifact = {
+        fileName: 'tokens.json',
+        mimeType: 'application/json',
+        content: dtcgJsonContent
+      };
+      const tailwindArtifact =
+        tailwindV4CssContent == null
+          ? null
+          : {
+              fileName: 'tailwind.theme.css',
+              mimeType: 'text/css',
+              content: tailwindV4CssContent
+            };
+      const zipBase64 = settings.includeZip
+        ? createArtifactZipBase64({
+            markdown: markdownArtifact,
+            dtcgJson: dtcgJsonArtifact,
+            tailwindV4Css: tailwindArtifact
+          })
+        : null;
 
       const artifactBundle: DesignMdArtifactBundle = {
         version: DESIGN_MD_VERSION.V1,
-        markdown: {
-          fileName: 'DESIGN.md',
-          mimeType: 'text/markdown',
-          content: markdownContent
-        },
-        dtcgJson: {
-          fileName: 'tokens.json',
-          mimeType: 'application/json',
-          content: dtcgJsonContent
-        },
-        tailwindV4Css:
-          tailwindV4CssContent == null
-            ? null
-            : {
-                fileName: 'tailwind.theme.css',
-                mimeType: 'text/css',
-                content: tailwindV4CssContent
-              },
-        zipBase64: null,
+        markdown: markdownArtifact,
+        dtcgJson: dtcgJsonArtifact,
+        tailwindV4Css: tailwindArtifact,
+        zipBase64,
         issues: [...warnings, ...validationIssues]
       };
 

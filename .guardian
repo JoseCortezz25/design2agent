@@ -1,0 +1,7 @@
+# Guardian project configuration
+
+PROVIDER="opencode:openai/gpt-5.5"
+RULES_FILE="AGENTS.md"
+STRICT_MODE="true"
+TIMEOUT="300"
+CACHE="true"

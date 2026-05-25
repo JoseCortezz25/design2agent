@@ -13,7 +13,12 @@ export interface DesignMdSnapshotResult {
   warnings: DesignMdIssue[];
 }
 
-function createIssue(id: string, message: string, path: string, hint: string): DesignMdIssue {
+function createIssue(
+  id: string,
+  message: string,
+  path: string,
+  hint: string
+): DesignMdIssue {
   return {
     id,
     severity: 'warning',
@@ -24,7 +29,12 @@ function createIssue(id: string, message: string, path: string, hint: string): D
   };
 }
 
-function toRgb(color: RGB | RGBA): { r: number; g: number; b: number; a: number } {
+function toRgb(color: RGB | RGBA): {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+} {
   return {
     r: color.r,
     g: color.g,
@@ -49,7 +59,9 @@ function toLetterSpacingValue(value: LetterSpacing): string {
   return `${value.value}px`;
 }
 
-function serializeVariableValue(value: VariableValue): DesignMdVariableModeValue {
+function serializeVariableValue(
+  value: VariableValue
+): DesignMdVariableModeValue {
   if (
     typeof value === 'string' ||
     typeof value === 'number' ||
@@ -61,7 +73,12 @@ function serializeVariableValue(value: VariableValue): DesignMdVariableModeValue
     };
   }
 
-  if (value && typeof value === 'object' && 'type' in value && value.type === 'VARIABLE_ALIAS') {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'type' in value &&
+    value.type === 'VARIABLE_ALIAS'
+  ) {
     return {
       kind: 'alias',
       value: {
@@ -71,7 +88,13 @@ function serializeVariableValue(value: VariableValue): DesignMdVariableModeValue
     };
   }
 
-  if (value && typeof value === 'object' && 'r' in value && 'g' in value && 'b' in value) {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'r' in value &&
+    'g' in value &&
+    'b' in value
+  ) {
     return {
       kind: 'color',
       value: toRgb(value)
@@ -84,10 +107,7 @@ function serializeVariableValue(value: VariableValue): DesignMdVariableModeValue
   };
 }
 
-function readBoundVariableId(
-  input: unknown,
-  keys: string[]
-): string | null {
+function readBoundVariableId(input: unknown, keys: string[]): string | null {
   if (!input || typeof input !== 'object' || !('boundVariables' in input)) {
     return null;
   }
@@ -122,7 +142,10 @@ function extractPaint(paint: Paint): DesignMdPaintValueSnapshot {
   return {
     kind: paint.type.toLowerCase() as DesignMdPaintValueSnapshot['kind'],
     color: null,
-    opacity: 'opacity' in paint && typeof paint.opacity === 'number' ? paint.opacity : null,
+    opacity:
+      'opacity' in paint && typeof paint.opacity === 'number'
+        ? paint.opacity
+        : null,
     boundVariableId
   };
 }
@@ -130,12 +153,24 @@ function extractPaint(paint: Paint): DesignMdPaintValueSnapshot {
 function extractEffect(effect: Effect): DesignMdEffectValueSnapshot {
   const base: DesignMdEffectValueSnapshot = {
     type: effect.type,
-    radius: 'radius' in effect && typeof effect.radius === 'number' ? effect.radius : null,
-    spread: 'spread' in effect && typeof effect.spread === 'number' ? effect.spread : null,
+    radius:
+      'radius' in effect && typeof effect.radius === 'number'
+        ? effect.radius
+        : null,
+    spread:
+      'spread' in effect && typeof effect.spread === 'number'
+        ? effect.spread
+        : null,
     offsetX: null,
     offsetY: null,
     color: 'color' in effect ? toRgb(effect.color) : null,
-    boundVariableId: readBoundVariableId(effect, ['color', 'radius', 'spread', 'offsetX', 'offsetY'])
+    boundVariableId: readBoundVariableId(effect, [
+      'color',
+      'radius',
+      'spread',
+      'offsetX',
+      'offsetY'
+    ])
   };
 
   if ('offset' in effect) {
@@ -150,11 +185,63 @@ function extractFrameMetrics(frames: FrameNode[]) {
   const gapValues = new Set<number>();
   const paddingValues = new Set<number>();
   const cornerRadiusValues = new Set<number>();
+  const widthValues = new Set<number>();
+  const heightValues = new Set<number>();
+  const minWidthValues = new Set<number>();
+  const maxWidthValues = new Set<number>();
+  const minHeightValues = new Set<number>();
+  const maxHeightValues = new Set<number>();
+  const itemSpacingValues = new Set<number>();
+  const strokeWeightValues = new Set<number>();
+  const layoutModeCounts = new Map<string, number>();
+  const primaryAxisAlignItemsCounts = new Map<string, number>();
+  const counterAxisAlignItemsCounts = new Map<string, number>();
+
+  const incrementCount = (target: Map<string, number>, key: string) => {
+    target.set(key, (target.get(key) ?? 0) + 1);
+  };
 
   for (const frame of frames) {
-    if ('itemSpacing' in frame && typeof frame.itemSpacing === 'number' && frame.itemSpacing > 0) {
-      gapValues.add(frame.itemSpacing);
+    if (frame.width > 0) {
+      widthValues.add(Math.round(frame.width));
     }
+
+    if (frame.height > 0) {
+      heightValues.add(Math.round(frame.height));
+    }
+
+    if (frame.minWidth != null && frame.minWidth > 0) {
+      minWidthValues.add(Math.round(frame.minWidth));
+    }
+
+    if (frame.maxWidth != null && frame.maxWidth > 0) {
+      maxWidthValues.add(Math.round(frame.maxWidth));
+    }
+
+    if (frame.minHeight != null && frame.minHeight > 0) {
+      minHeightValues.add(Math.round(frame.minHeight));
+    }
+
+    if (frame.maxHeight != null && frame.maxHeight > 0) {
+      maxHeightValues.add(Math.round(frame.maxHeight));
+    }
+
+    if (
+      'itemSpacing' in frame &&
+      typeof frame.itemSpacing === 'number' &&
+      frame.itemSpacing > 0
+    ) {
+      gapValues.add(frame.itemSpacing);
+      itemSpacingValues.add(frame.itemSpacing);
+    }
+
+    if (typeof frame.strokeWeight === 'number' && frame.strokeWeight > 0) {
+      strokeWeightValues.add(frame.strokeWeight);
+    }
+
+    incrementCount(layoutModeCounts, frame.layoutMode);
+    incrementCount(primaryAxisAlignItemsCounts, frame.primaryAxisAlignItems);
+    incrementCount(counterAxisAlignItemsCounts, frame.counterAxisAlignItems);
 
     const paddings = [
       frame.paddingTop,
@@ -178,7 +265,146 @@ function extractFrameMetrics(frames: FrameNode[]) {
     frameCount: frames.length,
     gapValues: [...gapValues].sort((left, right) => left - right),
     paddingValues: [...paddingValues].sort((left, right) => left - right),
-    cornerRadiusValues: [...cornerRadiusValues].sort((left, right) => left - right)
+    cornerRadiusValues: [...cornerRadiusValues].sort(
+      (left, right) => left - right
+    ),
+    widthValues: [...widthValues].sort((left, right) => left - right),
+    heightValues: [...heightValues].sort((left, right) => left - right),
+    minWidthValues: [...minWidthValues].sort((left, right) => left - right),
+    maxWidthValues: [...maxWidthValues].sort((left, right) => left - right),
+    minHeightValues: [...minHeightValues].sort((left, right) => left - right),
+    maxHeightValues: [...maxHeightValues].sort((left, right) => left - right),
+    itemSpacingValues: [...itemSpacingValues].sort(
+      (left, right) => left - right
+    ),
+    strokeWeightValues: [...strokeWeightValues].sort(
+      (left, right) => left - right
+    ),
+    layoutModeCounts: Object.fromEntries(layoutModeCounts),
+    primaryAxisAlignItemsCounts: Object.fromEntries(
+      primaryAxisAlignItemsCounts
+    ),
+    counterAxisAlignItemsCounts: Object.fromEntries(counterAxisAlignItemsCounts)
+  };
+}
+
+function extractLayoutGrid(layoutGrid: LayoutGrid) {
+  const boundVariableId = readBoundVariableId(layoutGrid, [
+    'sectionSize',
+    'gutterSize',
+    'offset',
+    'count'
+  ]);
+
+  return {
+    pattern: layoutGrid.pattern,
+    sectionSize:
+      'sectionSize' in layoutGrid ? (layoutGrid.sectionSize ?? null) : null,
+    gutterSize: 'gutterSize' in layoutGrid ? layoutGrid.gutterSize : null,
+    count: 'count' in layoutGrid ? layoutGrid.count : null,
+    alignment: 'alignment' in layoutGrid ? layoutGrid.alignment : null,
+    color:
+      'color' in layoutGrid && layoutGrid.color
+        ? toRgb(layoutGrid.color)
+        : null,
+    boundVariableId
+  };
+}
+
+function getLocalGridStyles() {
+  const styles = figma.getLocalGridStyles();
+
+  return styles.map(style => ({
+    id: style.id,
+    name: style.name,
+    layoutGrids: style.layoutGrids.map(extractLayoutGrid)
+  }));
+}
+
+function serializeComponentPropertyDefinitions(
+  input: ComponentNode['componentPropertyDefinitions']
+) {
+  return Object.fromEntries(
+    Object.entries(input).map(([key, value]) => [
+      key,
+      {
+        type: value.type,
+        defaultValue: value.defaultValue,
+        variantOptions: value.variantOptions,
+        preferredValues: value.preferredValues?.map(preferredValue => ({
+          type: preferredValue.type,
+          key: preferredValue.key
+        }))
+      }
+    ])
+  );
+}
+
+function serializeVariantGroupProperties(
+  input: ComponentSetNode['variantGroupProperties']
+) {
+  return Object.fromEntries(
+    Object.entries(input).map(([key, value]) => [
+      key,
+      {
+        values: value.values
+      }
+    ])
+  );
+}
+
+function extractComponentSnapshot(component: ComponentNode) {
+  const normalizeStyleId = (styleId: string | symbol): string =>
+    typeof styleId === 'string' ? styleId : '';
+
+  return {
+    id: component.id,
+    key: component.key,
+    name: component.name,
+    description: component.description,
+    componentSetId:
+      component.parent?.type === 'COMPONENT_SET' ? component.parent.id : null,
+    componentPropertyDefinitions: serializeComponentPropertyDefinitions(
+      component.componentPropertyDefinitions
+    ),
+    variantProperties: component.variantProperties,
+    fillStyleId: normalizeStyleId(component.fillStyleId),
+    strokeStyleId: normalizeStyleId(component.strokeStyleId),
+    effectStyleId: normalizeStyleId(component.effectStyleId),
+    gridStyleId: normalizeStyleId(component.gridStyleId),
+    cornerRadius:
+      typeof component.cornerRadius === 'number'
+        ? component.cornerRadius
+        : null,
+    cornerRadiusValues:
+      typeof component.cornerRadius === 'number' && component.cornerRadius > 0
+        ? [component.cornerRadius]
+        : [],
+    itemSpacing:
+      typeof component.itemSpacing === 'number' ? component.itemSpacing : null,
+    paddingTop: component.paddingTop,
+    paddingRight: component.paddingRight,
+    paddingBottom: component.paddingBottom,
+    paddingLeft: component.paddingLeft,
+    width: component.width,
+    height: component.height
+  };
+}
+
+function extractComponentSetSnapshot(componentSet: ComponentSetNode) {
+  const componentIds = componentSet.children
+    .filter(child => child.type === 'COMPONENT')
+    .map(component => component.id);
+
+  return {
+    id: componentSet.id,
+    key: componentSet.key,
+    name: componentSet.name,
+    description: componentSet.description,
+    variantGroupProperties: serializeVariantGroupProperties(
+      componentSet.variantGroupProperties
+    ),
+    componentIds
   };
 }
 
@@ -196,15 +422,22 @@ async function getLocalVariableCollections() {
   }));
 }
 
-async function getLocalVariables(warnings: DesignMdIssue[]): Promise<DesignMdVariableSnapshot[]> {
+async function getLocalVariables(
+  warnings: DesignMdIssue[]
+): Promise<DesignMdVariableSnapshot[]> {
   const variables = await figma.variables.getLocalVariablesAsync();
 
   return variables.map(variable => {
     const valuesByMode = Object.fromEntries(
-      Object.entries(variable.valuesByMode).map(([modeId, value]) => [modeId, serializeVariableValue(value)])
+      Object.entries(variable.valuesByMode).map(([modeId, value]) => [
+        modeId,
+        serializeVariableValue(value)
+      ])
     );
 
-    const aliasEntry = Object.values(valuesByMode).find(modeValue => modeValue.kind === 'alias');
+    const aliasEntry = Object.values(valuesByMode).find(
+      modeValue => modeValue.kind === 'alias'
+    );
     const aliasMetadata =
       aliasEntry?.kind === 'alias' &&
       aliasEntry.value &&
@@ -292,6 +525,13 @@ export async function createCurrentPageSnapshot(): Promise<DesignMdSnapshotResul
   const localPaintStyles = await getLocalPaintStyles(warnings);
   const localTextStyles = getLocalTextStyles();
   const localEffectStyles = getLocalEffectStyles();
+  const localGridStyles = getLocalGridStyles();
+  const components = figma.currentPage
+    .findAllWithCriteria({ types: ['COMPONENT'] })
+    .map(extractComponentSnapshot);
+  const componentSets = figma.currentPage
+    .findAllWithCriteria({ types: ['COMPONENT_SET'] })
+    .map(extractComponentSetSnapshot);
 
   if (localVariableCollections.length === 0) {
     warnings.push(
@@ -371,6 +611,9 @@ export async function createCurrentPageSnapshot(): Promise<DesignMdSnapshotResul
       localPaintStyles,
       localTextStyles,
       localEffectStyles,
+      localGridStyles,
+      components,
+      componentSets,
       frameMetrics: extractFrameMetrics(frames)
     },
     warnings

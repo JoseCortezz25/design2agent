@@ -7,15 +7,9 @@ async function bootstrap() {
 
   if (figma.editorType === 'figma') {
     figma.showUI(__html__, {
-      width: 360,
-      height: 620,
-      title: 'Design MD'
-    });
-  } else if (figma.editorType === 'figjam') {
-    figma.showUI(__html__, {
-      width: 360,
-      height: 620,
-      title: 'Design MD'
+      width: 380,
+      height: 630,
+      title: 'Design2Agent'
     });
   }
 }

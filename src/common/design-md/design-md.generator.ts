@@ -1,116 +1,120 @@
-import {
-  DESIGN_MD_ISSUE_SEVERITY,
-  DESIGN_MD_TOKEN_CATEGORY,
-  type DesignMdIssue,
-  type DesignMdNormalizedSnapshot,
-  type DesignMdTokenCategory
-} from './domain.types';
+import type { DesignMdSemanticModel } from './domain.types';
 
-const SECTION_ORDER: DesignMdTokenCategory[] = [
-  DESIGN_MD_TOKEN_CATEGORY.COLOR,
-  DESIGN_MD_TOKEN_CATEGORY.TYPOGRAPHY,
-  DESIGN_MD_TOKEN_CATEGORY.SPACING,
-  DESIGN_MD_TOKEN_CATEGORY.EFFECTS,
-  DESIGN_MD_TOKEN_CATEGORY.COMPONENTS
-];
-
-function formatTokenLine(token: DesignMdNormalizedSnapshot['tokens'][number]): string {
-  const valueLabel = token.aliasOf
-    ? `alias → ${token.aliasOf}`
-    : token.value === null
-      ? 'value: n/a'
-      : `value: ${token.value}`;
-
-  return `- \`${token.name}\` · ${valueLabel} · source: \`${token.traceability.sourceId}\``;
+function escapeYamlString(value: string): string {
+  return value.replace(/"/g, '\\"');
 }
 
-function getSectionTokens(
-  normalized: DesignMdNormalizedSnapshot,
-  category: DesignMdTokenCategory
-): string[] {
-  return normalized.tokens
-    .filter(token => token.category === category)
-    .map(formatTokenLine);
+function formatPixelValue(value: number): string {
+  return `${value}px`;
 }
 
-function createSection(
-  normalized: DesignMdNormalizedSnapshot,
-  category: DesignMdTokenCategory
-): string[] {
-  const sectionTokens = getSectionTokens(normalized, category);
-  const title = `## ${category}`;
-
-  if (sectionTokens.length === 0) {
-    return [title, '', '- _No data available from snapshot._', ''];
+function formatTokenValue(key: string, value: string | number): string {
+  if (typeof value === 'string') {
+    return `"${escapeYamlString(value)}"`;
   }
 
-  return [title, '', ...sectionTokens, ''];
-}
-
-function buildValidationSummary(issues: DesignMdIssue[]): string[] {
-  const errors = issues.filter(
-    issue => issue.severity === DESIGN_MD_ISSUE_SEVERITY.ERROR
-  ).length;
-  const warnings = issues.filter(
-    issue => issue.severity === DESIGN_MD_ISSUE_SEVERITY.WARNING
-  ).length;
-  const info = issues.filter(
-    issue => issue.severity === DESIGN_MD_ISSUE_SEVERITY.INFO
-  ).length;
-
-  return [
-    '## validation summary',
-    '',
-    `- errors: ${errors}`,
-    `- warnings: ${warnings}`,
-    `- info: ${info}`,
-    ''
-  ];
-}
-
-function createScaleSummary(
-  normalized: DesignMdNormalizedSnapshot,
-  category: DesignMdTokenCategory
-): string[] {
-  const values = normalized.tokens
-    .filter(token => token.category === category && typeof token.value === 'number')
-    .map(token => token.value as number)
-    .sort((left, right) => left - right);
-
-  if (values.length === 0) {
-    return ['- scale: n/a'];
+  if (
+    key === 'padding' ||
+    key === 'size' ||
+    key === 'height' ||
+    key === 'width' ||
+    key === 'rounded'
+  ) {
+    return `"${formatPixelValue(value)}"`;
   }
 
-  return [
-    `- scale-count: ${values.length}`,
-    `- min: ${values[0]}`,
-    `- max: ${values[values.length - 1]}`
-  ];
+  return `${value}`;
 }
 
-export function generateDesignMd(
-  normalized: DesignMdNormalizedSnapshot,
-  issues: DesignMdIssue[]
-): string {
-  const lines: string[] = [
-    '# DESIGN.md',
-    '',
-    '## overview',
-    '',
-    `- version: ${normalized.version}`,
-    `- page-id: ${normalized.page.id}`,
-    `- page-name: ${normalized.page.name}`,
-    `- token-count: ${normalized.tokens.length}`,
-    `- alias-count: ${normalized.tokens.filter(token => token.aliasOf != null).length}`,
+function pushSection(lines: string[], title: string, prose: string[]) {
+  lines.push(`## ${title}`, '');
+  for (const paragraph of prose) {
+    lines.push(paragraph, '');
+  }
+}
+
+function pushTokenList(lines: string[], entries: string[]) {
+  if (entries.length === 0) {
+    lines.push('- _No data available from snapshot._', '');
+    return;
+  }
+
+  lines.push(...entries, '');
+}
+
+export function generateDesignMd(model: DesignMdSemanticModel): string {
+  const frontMatter = [
+    '---',
+    `version: "${model.version}"`,
+    `name: "${escapeYamlString(model.name)}"`,
+    `description: "${escapeYamlString(model.description ?? '')}"`,
+    'colors:',
+    ...model.colors.map(token => `  ${token.name}: "${token.value}"`),
+    'typography:',
+    ...model.typography.flatMap(token => [
+      `  ${token.name}:`,
+      `    fontFamily: "${escapeYamlString(token.fontFamily)}"`,
+      `    fontStyle: "${escapeYamlString(token.fontStyle)}"`,
+      `    fontSize: "${formatPixelValue(token.fontSize)}"`,
+      `    lineHeight: "${escapeYamlString(token.lineHeight)}"`,
+      `    letterSpacing: "${escapeYamlString(token.letterSpacing)}"`,
+      `    paragraphSpacing: "${formatPixelValue(token.paragraphSpacing)}"`,
+      `    paragraphIndent: "${formatPixelValue(token.paragraphIndent)}"`
+    ]),
+    'spacing:',
+    ...model.spacing.map(token => `  ${token.name}: "${formatPixelValue(token.value)}"`),
+    'rounded:',
+    ...model.rounded.map(token => `  ${token.name}: "${formatPixelValue(token.value)}"`),
+    'components:',
+    ...model.components.flatMap(token => [
+      `  ${token.name}:`,
+      ...Object.entries(token.tokens).map(([key, value]) =>
+        `    ${key}: ${formatTokenValue(key, value)}`
+      )
+    ]),
+    '---',
     ''
   ];
 
-  for (const category of SECTION_ORDER) {
-    lines.push(...createScaleSummary(normalized, category), '');
-    lines.push(...createSection(normalized, category));
-  }
+  const lines: string[] = [...frontMatter];
 
-  lines.push(...buildValidationSummary(issues));
+  pushSection(lines, 'Overview', model.sections.overview);
+  pushSection(lines, 'Colors', model.sections.colors);
+  pushTokenList(
+    lines,
+    model.colors.map(token => `- \`${token.name}\`: ${token.value}`)
+  );
+
+  pushSection(lines, 'Typography', model.sections.typography);
+  pushTokenList(
+    lines,
+    model.typography.map(
+      token =>
+        `- \`${token.name}\`: ${token.fontFamily} ${token.fontStyle}, ${token.fontSize}px / ${token.lineHeight}`
+    )
+  );
+
+  pushSection(lines, 'Layout', model.sections.layout);
+  pushTokenList(lines, model.spacing.map(token => `- \`${token.name}\`: ${token.value}px`));
+
+  pushSection(lines, 'Elevation & Depth', model.sections.elevationAndDepth);
+
+  pushSection(lines, 'Shapes', model.sections.shapes);
+  pushTokenList(lines, model.rounded.map(token => `- \`${token.name}\`: ${token.value}px`));
+
+  pushSection(lines, 'Components', model.sections.components);
+  pushTokenList(
+    lines,
+    model.components.map(token => {
+      const tokenSummary = Object.entries(token.tokens)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(', ');
+      return `- \`${token.name}\`${token.variants.length > 0 ? ` (${token.variants.join(', ')})` : ''}: ${tokenSummary || 'no tokenized properties'}`;
+    })
+  );
+
+  pushSection(lines, "Do's and Don'ts", model.sections.dosAndDonts);
+  pushTokenList(lines, model.sections.dosAndDonts.map(item => `- ${item}`));
 
   return `${lines.join('\n').trimEnd()}\n`;
 }

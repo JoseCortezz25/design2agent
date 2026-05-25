@@ -126,6 +126,78 @@ export interface DesignMdFrameMetricsSnapshot {
   gapValues: number[];
   paddingValues: number[];
   cornerRadiusValues: number[];
+  widthValues: number[];
+  heightValues: number[];
+  minWidthValues: number[];
+  maxWidthValues: number[];
+  minHeightValues: number[];
+  maxHeightValues: number[];
+  itemSpacingValues: number[];
+  strokeWeightValues: number[];
+  layoutModeCounts: Record<string, number>;
+  primaryAxisAlignItemsCounts: Record<string, number>;
+  counterAxisAlignItemsCounts: Record<string, number>;
+}
+
+export interface DesignMdLayoutGridSnapshot {
+  pattern: string;
+  sectionSize: number | null;
+  gutterSize: number | null;
+  count: number | null;
+  alignment: string | null;
+  color: DesignMdRgbValue | null;
+  boundVariableId: string | null;
+}
+
+export interface DesignMdGridStyleSnapshot {
+  id: string;
+  name: string;
+  layoutGrids: DesignMdLayoutGridSnapshot[];
+}
+
+export interface DesignMdComponentSnapshot {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  componentSetId: string | null;
+  componentPropertyDefinitions: Record<
+    string,
+    {
+      type: string;
+      defaultValue: string | boolean;
+      variantOptions?: string[];
+      preferredValues?: { type: string; key: string }[];
+    }
+  >;
+  variantProperties: Record<string, string> | null;
+  fillStyleId: string;
+  strokeStyleId: string;
+  effectStyleId: string;
+  gridStyleId: string;
+  cornerRadius: number | null;
+  cornerRadiusValues: number[];
+  itemSpacing: number | null;
+  paddingTop: number;
+  paddingRight: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  width: number;
+  height: number;
+}
+
+export interface DesignMdComponentSetSnapshot {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  variantGroupProperties: Record<
+    string,
+    {
+      values: string[];
+    }
+  >;
+  componentIds: string[];
 }
 
 export interface DesignMdSettings {
@@ -157,7 +229,75 @@ export interface DesignMdSourceSnapshot {
   localPaintStyles: DesignMdPaintStyleSnapshot[];
   localTextStyles: DesignMdTextStyleSnapshot[];
   localEffectStyles: DesignMdEffectStyleSnapshot[];
+  localGridStyles: DesignMdGridStyleSnapshot[];
+  components: DesignMdComponentSnapshot[];
+  componentSets: DesignMdComponentSetSnapshot[];
   frameMetrics: DesignMdFrameMetricsSnapshot;
+}
+
+export interface DesignMdSemanticColorToken {
+  name: string;
+  value: string;
+  source: 'variable' | 'paint-style';
+  sourceId: string;
+}
+
+export interface DesignMdSemanticTypographyToken {
+  name: string;
+  fontFamily: string;
+  fontStyle: string;
+  fontSize: number;
+  lineHeight: string;
+  letterSpacing: string;
+  paragraphSpacing: number;
+  paragraphIndent: number;
+  sourceId: string;
+}
+
+export interface DesignMdSemanticSpacingToken {
+  name: string;
+  value: number;
+  source: 'variable' | 'frame-metric' | 'grid-style';
+  sourceId: string;
+}
+
+export interface DesignMdSemanticRoundedToken {
+  name: string;
+  value: number;
+  source: 'variable' | 'frame-metric' | 'component';
+  sourceId: string;
+}
+
+export interface DesignMdSemanticComponentToken {
+  name: string;
+  description?: string;
+  variants: string[];
+  properties: string[];
+  tokens: Record<string, string | number>;
+  sourceId: string;
+}
+
+export interface DesignMdSemanticSections {
+  overview: string[];
+  colors: string[];
+  typography: string[];
+  layout: string[];
+  elevationAndDepth: string[];
+  shapes: string[];
+  components: string[];
+  dosAndDonts: string[];
+}
+
+export interface DesignMdSemanticModel {
+  version: string;
+  name: string;
+  description?: string;
+  colors: DesignMdSemanticColorToken[];
+  typography: DesignMdSemanticTypographyToken[];
+  spacing: DesignMdSemanticSpacingToken[];
+  rounded: DesignMdSemanticRoundedToken[];
+  components: DesignMdSemanticComponentToken[];
+  sections: DesignMdSemanticSections;
 }
 
 export const DESIGN_MD_TOKEN_CATEGORY = {

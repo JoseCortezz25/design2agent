@@ -98,41 +98,41 @@
 :root {
   --radius: 0.625rem;
 
-  --background: oklch(1 0 0);
+  --background: #f8f8f8;
 
-  --foreground: oklch(0.145 0 0);
+  --foreground: #1f6f5f;
 
-  --card: oklch(1 0 0);
+  --card: #f8fbf8;
 
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: #1f6f5f;
 
-  --popover: oklch(1 0 0);
+  --popover: rgb(255 255 255 / 0.94);
 
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: #1f6f5f;
 
-  --primary: oklch(0.205 0 0);
+  --primary: #1f6f5f;
 
-  --primary-foreground: oklch(0.985 0 0);
+  --primary-foreground: #eeeeee;
 
-  --secondary: oklch(0.97 0 0);
+  --secondary: #6fcf97;
 
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary-foreground: #1f6f5f;
 
-  --muted: oklch(0.97 0 0);
+  --muted: rgb(111 207 151 / 0.18);
 
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: rgb(31 111 95 / 0.82);
 
-  --accent: oklch(0.97 0 0);
+  --accent: #2fa084;
 
-  --accent-foreground: oklch(0.205 0 0);
+  --accent-foreground: #eeeeee;
 
   --destructive: oklch(0.577 0.245 27.325);
 
-  --border: oklch(0.922 0 0);
+  --border: rgb(31 111 95 / 0.24);
 
-  --input: oklch(0.922 0 0);
+  --input: rgb(255 255 255 / 0.82);
 
-  --ring: oklch(0.708 0 0);
+  --ring: #2fa084;
 
   --chart-1: oklch(0.646 0.222 41.116);
 
@@ -229,7 +229,22 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground bg-white;
+    font-family: Roboto, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer components {
+  .preview-scroll-transparent {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .preview-scroll-transparent::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
   }
 }
